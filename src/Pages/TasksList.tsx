@@ -1,6 +1,5 @@
 import { CustomHeader } from "./TasksListStyles";
 import Logo from "../assets/Logo.svg";
-import { useForm } from "react-hook-form";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
@@ -11,6 +10,8 @@ import RadioGroup from "@mui/material/RadioGroup";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import React, { useState } from "react";
+import { Checkbox } from "@mui/material";
 
 interface Task {
     id: number;
@@ -18,27 +19,37 @@ interface Task {
     isComplete: boolean;
 }
 
-const tasks: Task[] = [
-    {
-        id: 1,
-        title: "Estudar React",
-        isComplete: false,
-    },
-    {
-        id: 2,
-        title: "Estudar NextJS",
-        isComplete: false,
-    },
-];
-
 export function TasksList() {
-    const { register, handleSubmit } = useForm();
-    // const [tasks, setTasks] = useState<Task[]>([]);
+    const [task, setTask] = useState('');
+    const [tasks, setTasks] = useState<Task[]>([]);
 
-    function handleCreateNewTask(data: any) {
-        console.log(data);
+    function handleCreateNewTask() {
+        if (task === '') {
+            return;
+        }
+
+        const newTask = {
+            id: Math.random(),
+            title: task,
+            isComplete: false,
+        }
+
+        tasks.push(newTask);
+        setTask('');
     }
-    
+
+    function deleteTask(id: number) {
+        const newTasks = tasks.filter((task) => task.id !== id);
+        setTasks(newTasks);
+    }
+
+    function handleTaskCompletion(id: number) {
+        const updatedTasks = tasks.map((task) =>
+            task.id === id ? { ...task, isComplete: !task.isComplete } : task
+        );
+        setTasks(updatedTasks);
+    }
+
     return (
         <Box>
             <CustomHeader>
@@ -49,7 +60,6 @@ export function TasksList() {
             </CustomHeader>
             <Box>
                 <FormControl
-                    onSubmit={handleSubmit(handleCreateNewTask)}
                     sx={{
                         width: "100%",
                         display: "flex",
@@ -61,17 +71,27 @@ export function TasksList() {
                 >
                     <TextField
                         label="Adicionar nova tarefa"
-                        variant="outlined"
-                        {...register("newTask")}
+                        variant="filled"
+                        onChange={(event) => setTask(event.target.value)}
                         sx={{
                             width: "100%",
                             maxWidth: "46rem",
                             backgroundColor: "#262626",
                         }}
+                        InputLabelProps={{
+                            style: { color: '#fff' },
+                        }}
+                        InputProps={{
+                            sx: {
+                                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                                    border: "none",
+                                },
+                            },
+                        }}
                     />
                     <Button
                         variant="contained"
-                        type="submit"
+                        onClick={handleCreateNewTask}
                     >
                         Adicionar
                     </Button>
@@ -87,13 +107,9 @@ export function TasksList() {
                         sx={{
                             display: "flex",
                             flexDirection: "row",
-                            justifyContent: "space-between",
-                            width: "100%",
-                            margin: "0 auto",
-                            marginTop: "2rem",
                         }}
                     >
-                        <Typography sx={{ color: '#4EA8DE' }}>
+                        <Typography sx={{ color: '#4EA8DE', flex: 1 }}>
                             Tarefas Criadas
                         </Typography>
                         <Typography sx={{ color: '#8284FA' }}>
@@ -135,6 +151,7 @@ export function TasksList() {
                                 alignItems: "center",
                                 justifyContent: "center",
                                 marginTop: "2rem",
+                                gap: "0.5rem",
                             }}
                         >
                             {tasks.map((task) => (
@@ -146,27 +163,31 @@ export function TasksList() {
                                     justifyContent: "space-between",
                                     width: "100%",
                                     padding: "0.5rem",
+                                    backgroundColor: "#333333",
+                                    borderRadius: "0.4rem",
                                     borderBottom: "1px solid rgba(0, 0, 0, 0.12)",
                                     }}
                                 >
-                                    <FormControl>
-                                    <RadioGroup
-                                        value={task.isComplete}
-                                        onChange={(event) => console.log(event.target.value)}
-                                    >
-                                        <FormControlLabel value={true} control={<Radio />} label="" />
-                                    </RadioGroup>
-                                    </FormControl>
+                                    <Radio
+                                        checked={task.isComplete}
+                                        onChange={() => handleTaskCompletion(task.id)}
+                                    />
                                     <Typography
-                                    sx={{
-                                        flexGrow: 1,
-                                        marginLeft: "1rem",
-                                    }}
+                                        sx={{
+                                            flexGrow: 1,
+                                            marginLeft: "1rem",
+                                            textDecoration: task.isComplete ? 'line-through' : 'none',
+                                            opacity: task.isComplete ? 0.5 : 1.0,
+                                        }}
                                     >
-                                    {task.title}
+                                        {task.title}
                                     </Typography>
-                                    <Button>
-                                    <DeleteOutlineIcon />
+                                    <Button
+                                        onClick={() => deleteTask(task.id)}
+                                    >
+                                        <DeleteOutlineIcon 
+                                            sx={{color: '#808080'}}
+                                        />
                                     </Button>
                                 </Box>
                             ))}
